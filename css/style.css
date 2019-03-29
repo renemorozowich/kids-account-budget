@@ -1,0 +1,37 @@
+body {
+  padding: 2em;
+}
+
+.page-content {
+  display: flex;
+}
+
+#sidebar {
+  flex: 30%;
+  padding-right: 2em;
+}
+
+#content {
+  flex: 60%;
+}
+
+.col, .col-header {
+  padding-top: .75rem;
+  padding-bottom: .75rem;
+  /* background-color: rgba(0,123,255,.15); */
+  background-color: rgba(108, 117, 125, .15);
+  /* border: 1px solid rgba(0,123,255,.2); */
+  border: 1px solid rgba(108, 117, 125, .2);
+}
+
+.col-header {
+	font-weight: bold;
+}
+
+#categories, #newCategory, #transactions, #newTransaction {
+	padding: 1em 0;
+}
+
+.page-header {
+	padding-bottom: 1em;
+}
