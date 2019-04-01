@@ -4,34 +4,34 @@ My final project for the [JavaScript for WP Bootcamp](https://www.javascriptforw
 
 ## Categories
 
-On setup, the user would choose budget categories meaningful to them (like clothes, entertainment, eating out, gifts, etc).
+On setup, the user can add budget categories meaningful to them (like clothes, entertainment, eating out, gifts, etc).
 
-Categories will show on a categories page or section of the home page.
+Categories show in the left sidebar.
 
 ### Budget
 
-An amount will be shown next to each category based on the transactions (see below). The total amount of all categories = the actual amount in the account.
+An amount is shown next to each category based on the transactions (see below). The total amount of all categories = the actual amount in the account.
 
 ## Transactions
 
-There will be a button to add a new transaction (on a page or section of the page).
+Previously entered transactions will show and include category, description and amount. All transactions will show in the content area.
 
-Each transaction can be positive (income) or negative (expense). There will be fields for date (date picker), category (dropdown), description (text) and amount (decimal).
+There is a form to add a new transaction and on save, the transaction is recorded and the total for the category is updated.
 
-On save, the transaction is recorded and the total for the category is updated.
+## Related
 
-All transactions will show (on a transactions page or section of the home page).
+The most recent blog post from [National Bank of Mom](https://nationalbankofmom.com) shows in the footer.
 
 # Future Versions
 
-* Save to a database instead of local storage
-* Move budgeted money between categories
-* Add login capabilities
-* When entering a new transaction, allow the user to choose more than one category
+* Choose a transaction date
 * Edit or delete categories
 * Edit or delete transactions
-* Add place/store and dropdown
-* Only show transactions based on month or time range (when there are many)
+* When entering a new transaction, allow the user to choose more than one category
+* Save to a database instead of local storage
+* Add login capabilities
+* Add a field for source of transaction
+* Group transactions and only show based on month or time range to save screen real estate
 * Possible: break budget down into monthly groupings
 * Possible: allow the addition of more than one account
 * Possible: reporting features

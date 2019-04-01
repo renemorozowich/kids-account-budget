@@ -1,14 +1,6 @@
-// Categories
-
-// show button to add new category
-// read from existing data
-// if categories exist, list them
-// get category amount (all/individual) - loop through all transactions, get total for the category and list
-// on add new click, shows text box and save button, shows cancel button, hides add new button
-// on cancel click, clears and hides text box and save button, shows add new button and hides itself
-// on save click, saves data and does all of cancel click stuff
 function init() {
     updateLocalStore();
+
     categoryList();
     newCategory();
 
@@ -19,6 +11,8 @@ function init() {
 }
 
 init();
+
+// Data
 
 function updateLocalStore() {
     localStorage.setItem('kidsAccountBudgetCategories', JSON.stringify(categories));
@@ -35,6 +29,8 @@ function getLocalStore(type) {
     return store;
 }
 
+// Categories
+
 function categoryList() {
     let categories = getLocalStore("categories");
     let categoriesEl = getEl("categories");
@@ -48,8 +44,7 @@ function categoryList() {
     rowHeader.classList.add("row");
 
 	let colHeader = createEl("div");
-    colHeader.classList.add("col", "font-weight-bold");
-	colHeader.classList.add("d-none");
+    colHeader.classList.add("col", "font-weight-bold", "d-none");
     colHeader.innerHTML = "ID";
     rowHeader.appendChild(colHeader);
 
@@ -70,8 +65,7 @@ function categoryList() {
         row.classList.add("row");
 
 		let col = createEl("div");
-		col.classList.add("col");
-		col.classList.add("d-none");
+		col.classList.add("col", "d-none");
 		col.innerHTML = categories[i].categoryid;
 		row.appendChild(col);
 
@@ -106,7 +100,6 @@ function getTotals(categoryId) {
 
 function newCategory() {
     var newCategory = getEl("newCategory");
-    //newCategory.classList.add( "test" );
 
     var markup = `
 	<form id="newCategoryForm">
@@ -124,7 +117,6 @@ function newCategory() {
 	categoryForm.addEventListener("submit", saveCategory);
 }
 
-
 function saveCategory(e) {
     e.preventDefault();
     let mainForm = getEl("newCategoryForm");
@@ -133,8 +125,6 @@ function saveCategory(e) {
     let newElement = {};
 
     for (let i = 0, max = mainForm.length; i < max; i++) {
-        //console.log( "Name: ", mainForm[i].name );
-        //console.log( "Value: ", mainForm[i].value );
         newElement["categoryid"] = getCategoryId();
         if (mainForm[i].name) {
             newElement[mainForm[i].name] = mainForm[i].value;
@@ -145,7 +135,6 @@ function saveCategory(e) {
     stored.push(newElement);
     localStorage.setItem("kidsAccountBudgetCategories", JSON.stringify(stored));
 
-    //clear input
     category.value = "";
 
     categoryList();
@@ -164,13 +153,6 @@ function getCategoryId() {
 }
 
 // Transactions
-
-// show button to add a new transaction
-// read from existing data
-// if transactions exist, list them
-// on add new click, show date, category, description and amount; save button, cancel button, hide add new
-// on cancel, clears and hides fields and save button; show add new; hide itself
-// on save, saves data and does all of cancel click stuff and get category amount
 
 function transactionList() {
     let transactions = getLocalStore("transactions");
@@ -319,8 +301,6 @@ function saveTransaction(e) {
     let newElement = {};
 
     for (let i = 0, max = mainForm.length; i < max; i++) {
-        //console.log( "Name: ", mainForm[i].name );
-        //console.log( "Value: ", mainForm[i].value );
         newElement["transactionid"] = getTransactionId();
         if (mainForm[i].name == "categoryid") {
             newElement[mainForm[i].name] = parseInt(mainForm[i].value);
@@ -336,7 +316,6 @@ function saveTransaction(e) {
     localStorage.setItem("kidsAccountBudgetTransactions", JSON.stringify(stored));
     transactionList();
 
-    //clear input
     transactionDescription.value = "";
     transactionAmount.value = "";
 
@@ -354,7 +333,8 @@ function getTransactionId() {
     return id + 1;
 }
 
-// footer
+// Posts
+
 function showPosts() {
     fetch('https://nationalbankofmom.com/wp-json/wp/v2/posts?per_page=1')
         .then(function (response) {
@@ -373,20 +353,24 @@ function showPosts() {
         .catch(function (error) {
             console.log(error)
         });
+}
 
-    function createSpan(title, link) {
+function createSpan(title, link) {
+	var span = document.createElement('span');
+	var markup = `
+	  <a href="` + link + `" target="_blank">` + title + `</a>
+	  `;
+	span.innerHTML = markup;
 
-        var span = document.createElement('span');
-        var markup = `
-		  <a href="` + link + `" target="_blank">` + title + `</a>
-		  `;
-        span.innerHTML = markup;
-
-        return span;
-    }
+	return span;
 }
 
 function addToPage(element) {
     var root = document.querySelector('#posts');
     root.appendChild(element);
 }
+
+// TODO:
+// add total for all categories 
+// add comments
+// condense
