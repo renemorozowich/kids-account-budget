@@ -11,39 +11,26 @@ var categories = [
   transactions = [
     {
       "transactionid":1,
-      "entered":"2019-03-23T11:33:00",
-	  "selected":"2019-03-23T11:33:00",
-	  "modified":"2019-03-23T11:33:00",
+	  "categoryid":1,
       "description":"Chores",
-      "categoryid":1,
-      "amount":20.00
+      "amount":16.50
     },
 	{
       "transactionid":2,
-      "entered":"2019-03-23T11:33:00",
-	  "selected":"2019-03-23T11:33:00",
-	  "modified":"2019-03-23T11:33:00",
+	  "categoryid":2,
       "description":"Allowance",
-      "categoryid":2,
-      "amount":10.00
+      "amount":15.00
     },
 	{
 	  "transactionid":3,
-	  "entered":"2019-03-23T11:33:00",
-	  "selected":"2019-03-23T11:33:00",
-	  "modified":"2019-03-23T11:33:00",
-	  "description":"New shirt from Target",
-	  "categoryid":1,
-	  "amount":-10.50
+	  "categoryid":2,
+	  "description":"Book at HPB",
+	  "amount":-8.50
 	},
 	{
-      "transactionid":4,
-      "entered":"2019-03-23T11:33:00",
-	  "selected":"2019-03-23T11:33:00",
-	  "modified":"2019-03-23T11:33:00",
-      "description":"Book at HPB",
-      "categoryid":2,
-      "amount":-8.50
-    },
-],
-data = JSON.stringify( { "categories": categories, "transactions": transactions } );
+	  "transactionid":4,
+	  "categoryid":1,
+	  "description":"Shirt at Target",
+	  "amount":-4.50
+	}
+];
