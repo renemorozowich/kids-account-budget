@@ -1,5 +1,11 @@
+/**
+ * Initialize.
+ *
+ */
 function init() {
-    updateLocalStore();
+    // get from local storage or if doesn't exist, get data from file
+    if (getData("categories") === null) setData("kidsAccountBudgetCategories", JSON.stringify(categories));
+    if (getData("transactions") === null) setData("kidsAccountBudgetTransactions", JSON.stringify(transactions));
 
     categoryList();
     newCategory();
@@ -14,70 +20,82 @@ init();
 
 // Data
 
-function updateLocalStore() {
-    localStorage.setItem('kidsAccountBudgetCategories', JSON.stringify(categories));
-    localStorage.setItem('kidsAccountBudgetTransactions', JSON.stringify(transactions));
+/**
+ * Sets data.
+ *
+ * @param {string} storeName The name of the data store.
+ * @param {Object} store The data store.
+ *
+ */
+function setData(storeName, store) {
+    localStorage.setItem(storeName, store);
 }
 
-function getLocalStore(type) {
+/**
+ * Gets data.
+ *
+ * @param {string} type The type of data to get (categories or transactions).
+ *
+ * @return {Object} The data store.
+ */
+function getData(type) {
     let store;
     if ("categories" === type) {
-        store = JSON.parse(localStorage.getItem('kidsAccountBudgetCategories'));
+        store = JSON.parse(localStorage.getItem("kidsAccountBudgetCategories"));
     } else {
-        store = JSON.parse(localStorage.getItem('kidsAccountBudgetTransactions'));
+        store = JSON.parse(localStorage.getItem("kidsAccountBudgetTransactions"));
     }
     return store;
 }
 
 // Categories
 
+/**
+ * Shows a list of all categories.
+ *
+ */
 function categoryList() {
-    let categories = getLocalStore("categories");
+    let categories = getData("categories");
     let categoriesEl = getEl("categories");
+    // clear any existing categories from the screen
     categoriesEl.innerHTML = "";
     let fragment = document.createDocumentFragment();
 
+    // create a container
     let container = createEl("div");
     container.classList.add("container");
 
+    // create a row for the header
     let rowHeader = createEl("div");
     rowHeader.classList.add("row");
 
-	let colHeader = createEl("div");
-    colHeader.classList.add("col", "font-weight-bold", "d-none");
-    colHeader.innerHTML = "ID";
-    rowHeader.appendChild(colHeader);
+    // create the header columns
+    // ID hidden
+    let cls = ["col", "font-weight-bold", "d-none"];
+    rowHeader.appendChild(createColumn("div", "ID", cls));
 
-	colHeader = createEl("div");
-    colHeader.classList.add("col", "font-weight-bold");
-    colHeader.innerHTML = "Category";
-    rowHeader.appendChild(colHeader);
-
-    colHeader = createEl("div");
-    colHeader.classList.add("col", "font-weight-bold");
-    colHeader.innerHTML = "Total";
-    rowHeader.appendChild(colHeader);
+    // total, total amount
+    cls = ["col", "font-weight-bold"];
+    rowHeader.appendChild(createColumn("div", "Total", cls));
+    rowHeader.appendChild(createColumn("div", getTotals(0), cls));
 
     container.appendChild(rowHeader);
 
-    for (let i = 0, max = categories.length; i < max; i++) {
+    // loop through all categories
+    for (var category of categories) {
+        // add a row for each
         let row = createEl("div");
         row.classList.add("row");
 
-		let col = createEl("div");
-		col.classList.add("col", "d-none");
-		col.innerHTML = categories[i].categoryid;
-		row.appendChild(col);
+        // add a column for each field
+        // ID hidden
+        let colcls = ["col", "d-none"];
+        row.appendChild(createColumn("div", category.categoryid, colcls));
 
-        col = createEl("div");
-        col.classList.add("col");
-        col.innerHTML = categories[i].title;
-        row.appendChild(col);
-
-        col = createEl("div");
-        col.classList.add("col");
-        col.innerHTML = getTotals(categories[i].categoryid);
-        row.appendChild(col);
+        // title, total
+        colcls = ["col"];
+        row.appendChild(createColumn("div", category.title, colcls));
+        row.appendChild(createColumn("div", getTotals(category.categoryid), colcls));
 
         container.appendChild(row);
     }
@@ -85,22 +103,38 @@ function categoryList() {
     categoriesEl.appendChild(fragment);
 }
 
+/**
+ * Gets the total for the specified category (or all categories).
+ *
+ * @param {int} categoryId The ID of the category or 0 for all.
+ *
+ * @return {float} The total.
+ */
 function getTotals(categoryId) {
-    let transactions = getLocalStore("transactions");
+    let transactions = getData("transactions");
     let total = 0;
 
-    for (let i = 0, max = transactions.length; i < max; i++) {
-        if (transactions[i].categoryid == categoryId) {
-            total = total + transactions[i].amount;
+    // loop through each transaction and add
+    for (var transaction of transactions) {
+        if (transaction.categoryid == categoryId) {
+            total = total + transaction.amount;
+        } else if (0 === categoryId) {
+            total = total + transaction.amount;
         }
     }
 
+    // return total with two decimals
     return total.toFixed(2);
 }
 
+/**
+ * Creates the form to enter a new category.
+ *
+ */
 function newCategory() {
     var newCategory = getEl("newCategory");
 
+    // new category form
     var markup = `
 	<form id="newCategoryForm">
 	  <div class="form-group">
@@ -113,124 +147,117 @@ function newCategory() {
 
     newCategory.innerHTML = markup;
 
-	var categoryForm = getEl("newCategoryForm");
-	categoryForm.addEventListener("submit", saveCategory);
+    // add event listener to submit button to save category on submit
+    var categoryForm = getEl("newCategoryForm");
+    categoryForm.addEventListener("submit", saveCategory);
 }
 
+/**
+ * Saves the entered category and refreshes the appropriate areas of the screen.
+ *
+ */
 function saveCategory(e) {
     e.preventDefault();
-    let mainForm = getEl("newCategoryForm");
+    let fields = getEl("newCategoryForm");
+    let store = []; // array
+    let newElement = {}; // object
 
-    let store = [];
-    let newElement = {};
-
-    for (let i = 0, max = mainForm.length; i < max; i++) {
+    // loop through each field on the form
+    for (var field of fields) {
+        // category id
         newElement["categoryid"] = getCategoryId();
-        if (mainForm[i].name) {
-            newElement[mainForm[i].name] = mainForm[i].value;
-        }
+        // name
+        if (field.name) {
+            newElement[field.name] = field.value;
+        } // no others
     }
 
-    var stored = JSON.parse(localStorage.getItem("kidsAccountBudgetCategories"));
+    // get the stored transactions
+    var stored = getData("categories");
+    // push the new items
     stored.push(newElement);
-    localStorage.setItem("kidsAccountBudgetCategories", JSON.stringify(stored));
+    // reset local storage
+    setData("kidsAccountBudgetCategories", JSON.stringify(stored));
 
+    // clear input
     category.value = "";
 
+    // refresh category list
     categoryList();
+    // refresh new transaction fields (to include new category in dropdown)
     newTransaction();
 }
 
+/**
+ * Gets the next available category id.
+ *
+ * @return {int} The next available category id.
+ */
 function getCategoryId() {
-    let categories = getLocalStore("categories");
+    let categories = getData("categories");
     let id;
 
-    for (let i = 0, max = categories.length; i < max; i++) {
-        id = categories[i].categoryid;
+    // TODO: rework in case these aren't in order.
+    for (var category of categories) {
+        id = category.categoryid;
     }
 
+	if (!id) id = 0;
     return id + 1;
 }
 
 // Transactions
 
+/**
+ * Shows a list of all transactions.
+ *
+ */
 function transactionList() {
-    let transactions = getLocalStore("transactions");
+    let transactions = getData("transactions");
     let transactionsEl = getEl("transactions");
+    // clear any existing transactions from the screen
     transactionsEl.innerHTML = "";
     let fragment = document.createDocumentFragment();
 
+    // create a container
     let container = createEl("div");
     container.classList.add("container");
 
+    // create a row for the header
     let rowHeader = createEl("div");
     rowHeader.classList.add("row");
 
-	let colHeader = createEl("div");
-	colHeader.classList.add("col", "font-weight-bold", "d-none");
-    colHeader.innerHTML = "ID";
-    rowHeader.appendChild(colHeader);
+    // create the header columns
+    // ID hidden
+    let cls = ["col", "font-weight-bold", "d-none"];
+    rowHeader.appendChild(createColumn("div", "ID", cls));
 
-    colHeader = createEl("div");
-	colHeader.classList.add("col", "font-weight-bold");
-    colHeader.innerHTML = "Category";
-    rowHeader.appendChild(colHeader);
-
-    colHeader = createEl("div");
-    colHeader.classList.add("col", "font-weight-bold");
-    colHeader.innerHTML = "Description";
-    rowHeader.appendChild(colHeader);
-
-    colHeader = createEl("div");
-	colHeader.classList.add("col", "font-weight-bold");
-    colHeader.innerHTML = "Amount";
-    rowHeader.appendChild(colHeader);
+    // category, description, amount
+    cls = ["col", "font-weight-bold"];
+    rowHeader.appendChild(createColumn("div", "Category", cls));
+    rowHeader.appendChild(createColumn("div", "Description", cls));
+    rowHeader.appendChild(createColumn("div", "Amount", cls));
 
     container.appendChild(rowHeader);
 
-    for (let i = 0, max = transactions.length; i < max; i++) {
+    // loop through transactions
+    for (var transaction of transactions) {
+        // add a row for each
         let row = createEl("div");
         row.classList.add("row");
+		row.setAttribute("id", "transaction-" + transaction.transactionid);
+		row.addEventListener("dblclick", deleteTransaction);
 
-		let col = createEl("div");
-		col.classList.add("col", "d-none");
-		col.innerHTML = transactions[i].transactionid;
-		/*if (transactions[i].amount.toFixed(2) < 0) {
-			col.classList.add("alert-danger");
-		} else {
-			col.classList.add("alert-success");
-		}*/
-		row.appendChild(col);
+        // add a column for each field
+        // ID hidden
+        let colcls = ["col", "d-none"];
+        row.appendChild(createColumn("div", transaction.transactionid, colcls));
 
-        col = createEl("div");
-        col.classList.add("col");
-        col.innerHTML = getCategoryFromId(transactions[i].categoryid);
-		/*if (transactions[i].amount.toFixed(2) < 0) {
-			col.classList.add("alert-danger");
-		} else {
-			col.classList.add("alert-success");
-		}*/
-        row.appendChild(col);
-
-        col = createEl("div");
-        col.classList.add("col");
-        col.innerHTML = transactions[i].description;
-		/*if (transactions[i].amount.toFixed(2) < 0) {
-			col.classList.add("alert-danger");
-		} else {
-			col.classList.add("alert-success");
-		}*/
-        row.appendChild(col);
-
-        col = createEl("div");
-        col.classList.add("col");
-        col.innerHTML = transactions[i].amount.toFixed(2);
-		/*if (transactions[i].amount.toFixed(2) < 0) {
-			col.classList.add("alert-danger");
-		} else {
-			col.classList.add("alert-success");
-		}*/
-        row.appendChild(col);
+        // category, description, amount
+        colcls = ["col"];
+        row.appendChild(createColumn("div", getCategoryFromId(transaction.categoryid), colcls));
+        row.appendChild(createColumn("div", transaction.description, colcls));
+        row.appendChild(createColumn("div", transaction.amount.toFixed(2), colcls));
 
         container.appendChild(row);
     }
@@ -238,34 +265,70 @@ function transactionList() {
     transactionsEl.appendChild(fragment);
 }
 
-function getCategoryFromId(categoryId) {
-    let categories = getLocalStore("categories");
+/**
+ * Creates a column.
+ *
+ * @param {string} element The type of element to create.
+ * @param {string} text The innerHTML of the element.
+ * @param {array} cls An array of classes to add to the element.
+ *
+ * @return {string} The title of the category.
+ */
+function createColumn(element, text, cls) {
+    let col = createEl(element);
+    col.innerHTML = text;
+    for (var cl of cls) {
+        col.classList.add(cl);
+    }
+    return col;
+}
 
-    for (let i = 0, max = categories.length; i < max; i++) {
-        if (categories[i].categoryid == categoryId) {
-            return categories[i].title;
+/**
+ * Gets the category name from the ID
+ *
+ * @param {int} categoryId The ID of the category.
+ *
+ * @return {string} The title of the category.
+ */
+function getCategoryFromId(categoryId) {
+    let categories = getData("categories");
+
+    for (var category of categories) {
+        if (category.categoryid == categoryId) {
+            return category.title;
         }
     }
 }
 
+/**
+ * Shows all categories in the dropdown
+ *
+ */
 function categoryDropdown() {
-    let categories = getLocalStore("categories");
+    let categories = getData("categories");
     let select = getEl("transactionCategory");
     let fragment = document.createDocumentFragment();
 
-    for (let i = 0, max = categories.length; i < max; i++) {
+    // loop through each category and create the drop down options with id and value
+    for (var category of categories) {
         let el = createEl("option");
-        el.value = categories[i].categoryid;
-        el.innerHTML = categories[i].title;
+        el.value = category.categoryid;
+        el.innerHTML = category.title;
         fragment.appendChild(el);
     }
 
+    // append to the select
     select.appendChild(fragment);
 }
 
+/**
+ * Creates the form to enter a new transaction.
+ *
+ */
 function newTransaction() {
     var newtransaction = getEl("newTransaction");
 
+    // new transaction form
     var transactionMarkup = `
 	<form id="newTransactionForm">
 	  <div class="form-row">
@@ -288,55 +351,116 @@ function newTransaction() {
 
     newtransaction.innerHTML = transactionMarkup;
 
-	var transactionForm = getEl("newTransactionForm");
+    // add event listener to submit button to save transaction on submit
+    var transactionForm = getEl("newTransactionForm");
     transactionForm.addEventListener("submit", saveTransaction);
 
+    // fill categories dynamically
     categoryDropdown();
 }
 
+/**
+ * Saves the entered transaction and refreshes the appropriate areas of the screen.
+ *
+ */
 function saveTransaction(e) {
     e.preventDefault();
-	let mainForm = getEl("newTransactionForm");
-	let store = [];
-    let newElement = {};
+    let fields = getEl("newTransactionForm");
+    let store = []; // array
+    let newElement = {}; // object
 
-    for (let i = 0, max = mainForm.length; i < max; i++) {
-        newElement["transactionid"] = getTransactionId();
-        if (mainForm[i].name == "categoryid") {
-            newElement[mainForm[i].name] = parseInt(mainForm[i].value);
-        } else if (mainForm[i].name == "amount") {
-            newElement[mainForm[i].name] = parseFloat(mainForm[i].value);
-        } else if (mainForm[i].name) {
-            newElement[mainForm[i].name] = mainForm[i].value;
+    // loop through each field on the form
+    for (var field of fields) {
+        // transaction id
+        newElement["transactionid"] = getNextTransactionId();
+
+        // category id (int)
+        if (field.name == "categoryid") {
+            newElement[field.name] = parseInt(field.value);
+            // amount (float)
+        } else if (field.name == "amount") {
+            newElement[field.name] = parseFloat(field.value);
+            // name
+        } else if (field.name) {
+            newElement[field.name] = field.value;
         }
+        // no others (blanks - save button)
     }
 
-	var stored = JSON.parse(localStorage.getItem("kidsAccountBudgetTransactions"));
+    // get the stored transactions
+    var stored = getData("transactions");
+    // push the new items
     stored.push(newElement);
-    localStorage.setItem("kidsAccountBudgetTransactions", JSON.stringify(stored));
+    // reset local storage
+    setData("kidsAccountBudgetTransactions", JSON.stringify(stored));
+
+    // show the transaction list with the updated transaction
     transactionList();
 
+    // clear the fields
     transactionDescription.value = "";
     transactionAmount.value = "";
 
+    // show the category list with updated titles
     categoryList();
 }
 
-function getTransactionId() {
-    let transactions = getLocalStore("transactions");
+/**
+ * Gets the next available transaction id.
+ *
+ * @return {int} The next available transaction id.
+ */
+function getNextTransactionId() {
+    let transactions = getData("transactions");
     let id;
 
-    for (let i = 0, max = transactions.length; i < max; i++) {
-        id = transactions[i].transactionid;
+    // TODO: rework in case these aren't in order.
+    for (var transaction of transactions) {
+        id = transaction.transactionid;
     }
 
+	if (!id) id = 0;
     return id + 1;
 }
 
+/**
+ * Deletes a transaction.
+ *
+ */
+function deleteTransaction(e) {
+	let id = e.composedPath()[1].id;
+	// get the numeric transaction id for the row
+	id = id.split("-")[1];
+
+	// get the stored transactions
+    var transactions = getData("transactions");
+
+	for (var i = 0, max = transactions.length; i < max; i++) {
+		if (id == transactions[i].transactionid) {
+			transactions.splice(i, 1);
+			break;
+		}
+	}
+
+    // reset local storage
+    setData("kidsAccountBudgetTransactions", JSON.stringify(transactions));
+
+	// show the transaction list with the updated transaction
+    transactionList();
+
+	// show the category list with updated titles
+    categoryList();
+}
+
+
 // Posts
 
+/**
+ * Gets the most recent post via REST API.
+ *
+ */
 function showPosts() {
-    fetch('https://nationalbankofmom.com/wp-json/wp/v2/posts?per_page=1')
+    fetch("https://nationalbankofmom.com/wp-json/wp/v2/posts?per_page=1")
         .then(function (response) {
             if (response.ok) {
                 return response.json();
@@ -355,22 +479,36 @@ function showPosts() {
         });
 }
 
+/**
+ * Creates a link to the post passed in.
+ *
+ * @param {string} title The title of the post.
+ * @param {string} link The link for the post.
+ *
+ * @return {string} Markup of the post title with link.
+ */
 function createSpan(title, link) {
-	var span = document.createElement('span');
-	var markup = `
+    var span = createEl("span");
+    var markup = `
 	  <a href="` + link + `" target="_blank">` + title + `</a>
 	  `;
-	span.innerHTML = markup;
+    span.innerHTML = markup;
 
-	return span;
+    return span;
 }
 
+/**
+ * Appends an element to the posts div.
+ *
+ * @param {Object} element The element to add to page.
+ */
 function addToPage(element) {
-    var root = document.querySelector('#posts');
-    root.appendChild(element);
+    var posts = getEl("posts");
+    posts.appendChild(element);
 }
 
 // TODO:
-// add total for all categories 
-// add comments
+// add all divs and ids in JS
 // condense
+// update readme
+// upload via git to SiteGround
