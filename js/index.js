@@ -4,8 +4,10 @@
  */
 function init() {
     // get from local storage or if doesn't exist, get data from file
-    if (getData("categories") === null) setData("kidsAccountBudgetCategories", JSON.stringify(categories));
-    if (getData("transactions") === null) setData("kidsAccountBudgetTransactions", JSON.stringify(transactions));
+    //if (getData("categories") === null)
+	setData("kidsAccountBudgetCategories", JSON.stringify(categories));
+    //if (getData("transactions") === null) 
+	setData("kidsAccountBudgetTransactions", JSON.stringify(transactions));
 
     categoryList();
     newCategory();
@@ -508,7 +510,8 @@ function addToPage(element) {
 }
 
 // TODO:
+// data validation/tooltips
 // add all divs and ids in JS
 // condense
 // update readme
-// upload via git to SiteGround
+// upload site online (via git to SiteGround?)
